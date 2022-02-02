@@ -1,0 +1,93 @@
+library(tidyverse)
+library(stats)
+library(dplyr)
+install.packages("DataExplorer")
+library(DataExplorer)
+install.packages("metan")
+library(metan)
+
+#Dataset Load and verification
+fantasy_wk0 <- read.csv("FPL_2018_19_Wk0.csv")
+fantasy_wk11 <- read.csv("FPL_2018_19_Wk11.csv")
+view(fantasy_wk0)
+str(fantasy_wk0)
+str(fantasy_wk11)
+
+# Data Preprocessing, testing for missing values 
+sum(is.na(fantasy_wk0))
+sum(is.na(fantasy_wk11))
+
+
+
+
+
+#Carrying out EDA
+fantasy_wk0 %>% glimpse()
+fantasy_wk0 %>%
+  create_report(
+    output_file = "Fantasy Week 0 Report",
+    output_dir  = "AppliedStatsAssement/",
+    y           = "Points",
+    report_title = "EDA Report for Fantasy League Week 0"
+        )
+
+fantasy_wk11 %>%
+  create_report(
+    output_file = "Fantasy Week 11 Report",
+    output_dir  = "AppliedStatsAssement/",
+    y           = "Points",
+    report_title = "EDA Report for Fantasy League Week 11"
+  )
+  
+fantasy_wk0 %>% plot_correlation(maxcat = 5, type = "c")
+plot_correlation(na.omit(fantasy_wk0), type = "d")
+introduce(fantasy_wk0)
+
+
+
+## Reduce data size for demo purpose - Bivariable 
+threat_point <- fantasy_wk0[, c("Threat","Points")]
+
+## Call boxplot function
+plot_boxplot(threat_point, by = "Points")
+plot_scatterplot(threat_point, by = "Threat")
+
+## Reduce data for Creativity agiainst Point
+Creativity_point <- fantasy_wk0[, c("Creativity","Points")]
+
+## Call boxplot function
+plot_boxplot(Creativity_point, by = "Points")
+## Reduce data for Influence agianst Point
+Influence_point <- fantasy_wk0[, c("Influence","Points")]
+## Call boxplot function
+plot_scatterplot(Influence_point, by = "Points")
+## Research question 6 - testing relationship between ICt, Bonus and Points awarded in week 0 
+fantasy_wk0 %>% 
+ ggplot(aes(Points,ICT, color = "Bonus")) +
+  geom_point(size =3, alpha = 0.5) +
+  geom_smooth(method = lm, se=FALSE) +
+  facet_wrap(~Position)
+  labs(title = "ICT, Point & Bonus Distribution") +
+  theme_bw() 
+# testing relationship between ICt, Bonus and Points awarded in week 11  
+  fantasy_wk11 %>% 
+    ggplot(aes(Points,ICT, color = "Bonus")) +
+    geom_point(size =3, alpha = 0.5) +
+    geom_smooth(method = lm, se=FALSE) +
+    facet_wrap(~Position)
+  labs(title = "ICT, Point & Bonus Distribution") +
+    theme_bw() 
+  getwd()
+
+# Correlation test
+  corrl2 <- corr_coef(fantasy_wk11)
+plot(corrl2)
+print(corrl2)
+sink("corrl2.txt")
+print(corrl2)
+sink()
+
+#Performing a linear regression 
+Results <- lm(Points ~ Creativity + Influence + ICT + Threat, data = fantasy_wk0)
+summary(Results)
+predict(Results, data.frame(Creativity = 70.2, Influence = 172.4, ICT = 29.4, Threat = 51))
